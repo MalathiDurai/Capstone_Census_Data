@@ -14,8 +14,8 @@ Installation
 
 Clone the repository:
 
-git clone <repository-url>
-cd <repository-directory>
+git clone (https://github.com/MalathiDurai/Capstone_Census_Data.git)
+cd <cloning_repository-directory>
 
 Install dependencies:
 
