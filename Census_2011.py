@@ -55,18 +55,15 @@ def fetch_data():
         return None
     return df
 #df = fetch_data()
-#df
+
 
 # %%
 # Rename the Column names by removing spaces and reducing the size effectively
 def rename_columns(df):
-    columns_with_spaces = [col for col in df.columns if ' ' in col]
-    #print(columns_with_spaces)
 
-#removing spances between column names
+    #removing spaces between column names
     df.columns = df.columns.str.replace(' ', '_')
-    #df.columns
-
+    # Rename the columns as per standard format
     column_mapping = {
         'District_code': 'District_Code',
         'State_name': 'State_UT',
@@ -196,8 +193,9 @@ def rename_columns(df):
 
 # %%
 # Standardizing State/UT Names
+# Function to format the state names
 def state_name_formatting(df):
- # Function to format the state name
+
     def capitalize_st(name):
         words = name.split()
         return ' '.join([word.capitalize() if word.lower() != 'and' else word.lower() for word in words])
@@ -217,14 +215,7 @@ def state_name_formatting(df):
     return df
 
 #df = state_name_formatting(df)
-# df["State_UT"]
-# df
 
-# telangana = df.loc[df["State_UT"] == 'Telangana',  "District_Name"]
-# print(telangana)
-
-# ladakh = df.loc[df["State_UT"] == 'Ladakh',  "District_Name"]
-# print(ladakh)
 
 # %%
 # Analyzing and filling the missing values with valid data
@@ -289,7 +280,6 @@ def null_value_percent_filling(df):
     return df_updated, comparison
 
 #df_updated, comparison = null_value_percent_filling(df)
-# comparison
 
 
 # %%
@@ -335,7 +325,7 @@ def rdbms_table_creation():
             if connection:
                 # Create a cursor object using context manager
                 with connection.cursor() as cursor:
-                    # Define the schema creation queries
+                    # Defining table drop and creation queries
                     schema_queries = [
                         """ALTER TABLE Demographics DROP CONSTRAINT fk_district_code_Geo""",
                         """ALTER TABLE Demographics DROP CONSTRAINT fk_district_code_hh""",
@@ -499,7 +489,7 @@ def rdbms_table_creation():
                         except cx_Oracle.DatabaseError as err:
                             print(f"Error creating table: {err}")
 
-                # Commit changes (outside of the cursor block)
+                # Commiting the DB changes
                 connection.commit()
 
     except cx_Oracle.DatabaseError as err:
@@ -510,9 +500,6 @@ def rdbms_table_creation():
 
 # %%
 def load_data_to_oracle_db():
-    import pymongo
-    import cx_Oracle
-
     # MongoDB connection
     mongo_collection = connect_mongo()
 
@@ -846,9 +833,9 @@ def oracle_tables_to_df():
             print(f"Error fetching data: {e}")
             return None
 
-    districts_query = "SELECT * FROM Districts"
-    demographics_query = "SELECT * FROM Demographics"
-    household_query = "SELECT * FROM Household"
+    districts_query = "SELECT * FROM Districts order by DISTRICT_CODE"
+    demographics_query = "SELECT * FROM Demographics order by DISTRICT_CODE"
+    household_query = "SELECT * FROM Household order by DISTRICT_CODE"
 
     # Load data into DataFrames
     districts_df = fetch_data_to_dataframe(districts_query, oracle_connection)
@@ -892,6 +879,15 @@ if 'demographics_df' not in st.session_state:
 if 'household_df' not in st.session_state:
     st.session_state.household_df = pd.DataFrame()
 
+# Sidebar background color change
+sidebar_style = """
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #ffcce6;
+    }
+    </style>
+    """
+st.markdown(sidebar_style, unsafe_allow_html=True)
 
 # Sidebar for Actions
 st.sidebar.header("Actions")
@@ -1249,12 +1245,12 @@ else:
 st.markdown("---")
 st.markdown("Census 11 report")
 
-# Add a more professional look with CSS (optional)
+# Website background formatting
 st.markdown(
     """
     <style>
     .main { 
-        background-color: #f0f2f6; 
+        background-color: #cceeff; 
     }
     </style>
     """, 
