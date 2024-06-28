@@ -47,7 +47,7 @@ def connect_mongo():
 # %%
 def fetch_data():
     try:
-        file_path = "D:/Data Engineering/Pandas/Dataset/census_2011.xlsx"
+        file_path = "census_2011.xlsx"
         df = pd.read_excel(file_path)
         print("Data fetched from local file successfully.")
     except Exception as e:
@@ -209,7 +209,7 @@ def state_name_formatting(df):
     df.loc[df["District_Name"].isin(ladakh_districts), "State_UT"] = "Ladakh"
 
     # Change the state names to Telangana
-    with open('D:/Data Engineering/Pandas/Dataset/Telangana.txt') as file:
+    with open('Telangana.txt') as file:
         telangana_districts = file.read().splitlines()
 
     df.loc[df["District_Name"].isin(telangana_districts), "State_UT"] = "Telangana"
