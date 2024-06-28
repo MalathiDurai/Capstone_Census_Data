@@ -846,7 +846,6 @@ def oracle_tables_to_df():
             print(f"Error fetching data: {e}")
             return None
 
-    # Example queries to fetch data from the tables
     districts_query = "SELECT * FROM Districts"
     demographics_query = "SELECT * FROM Demographics"
     household_query = "SELECT * FROM Household"
@@ -1073,13 +1072,13 @@ def analysis(question):
                     ELSE SUM(
                         hh.HHSize1Person * 1 + 
                         hh.HHSize2Persons * 2 + 
-                        hh.HHSize1To2Persons * 1.5 + -- Assuming an average size of 1.5 for 1-2 persons
+                        hh.HHSize1To2Persons * 1.5 + 
                         hh.HHSize3Persons * 3 + 
-                        hh.HHSize3To5Persons * 4 + -- Assuming an average size of 4 for 3-5 persons
+                        hh.HHSize3To5Persons * 4 + 
                         hh.HHSize4Persons * 4 + 
                         hh.HHSize5Persons * 5 + 
-                        hh.HHSize6_8Persons * 7 + -- Assuming an average size of 7 for 6-8 persons
-                        hh.HHSize9AbovePersons * 10 -- Assuming an average size of 10 for 9+ persons
+                        hh.HHSize6_8Persons * 7 + 
+                        hh.HHSize9AbovePersons * 10 
                     ) / SUM(hh.totalhh) 
                 END AS State_avg_HH_size
             FROM 
