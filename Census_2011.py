@@ -883,7 +883,7 @@ if 'household_df' not in st.session_state:
 sidebar_style = """
     <style>
     [data-testid="stSidebar"] {
-        background-color: #ffcce6;
+        background-color: #c2c2d6;
     }
     </style>
     """
@@ -1250,7 +1250,7 @@ st.markdown(
     """
     <style>
     .main { 
-        background-color: #cceeff; 
+        background-color: #e0e0eb; 
     }
     </style>
     """, 
