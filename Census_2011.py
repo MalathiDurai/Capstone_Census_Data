@@ -151,7 +151,7 @@ def rename_columns(df):
         'Main_source_of_drinking_water_Spring_Households': 'SpringWaterHH',
         'Main_source_of_drinking_water_River_Canal_Households': 'RiverCanalWaterHH',
         'Main_source_of_drinking_water_Other_sources_Households': 'OtherWaterHH',
-        'Main_source_of_drinking_water_Other_sources_Spring_River': 'OtherWaterHH_River',
+        'Main_source_of_drinking_water_Other_sources_Spring_River_Canal_Tank_Pond_Lake_Other_sources__Households': 'OtherWaterHH_River',
         'Location_of_drinking_water_source_Near_the_premises_Households': 'NearPremisesWaterHH',
         'Location_of_drinking_water_source_Within_the_premises_Households': 'WithinPremisesWaterHH',
         'Main_source_of_drinking_water_Tank_Pond_Lake_Households': 'PondLakeWaterHH',
