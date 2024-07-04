@@ -14,17 +14,18 @@ def connect_oracledb():
         user = 'hr'
         password = 'hr_new2'
         sid = 'xe'
- 
+
         dsn = cx_Oracle.makedsn(hostname, port, sid=sid)
         connection = cx_Oracle.connect(user=user, password=password, dsn=dsn)
-        
+
         print("RDBMS - Oracle DB connection established successfully.")
         return connection
     except cx_Oracle.DatabaseError as err:
         print(f"Error connecting to Oracle DB: {err}")
         st.error(f"Error connecting to Oracle DB: {err}")
         return None
-    
+
+
 #connect_oracledb()
 
 # %%
@@ -33,7 +34,7 @@ def connect_mongo():
     try:
         connection_string = "mongodb://localhost:27017"
         client = pymongo.MongoClient(connection_string)
-        db=client['census']
+        db = client['census']
         collection = db["census"]
         print("MongoDB connection established successfully.")
         return collection
@@ -42,25 +43,27 @@ def connect_mongo():
         st.error(f"An error occurred while connecting to MongoDB: {e}")
         return None
 
-#connect_mongo()   
+
+#connect_mongo()
 
 # %%
 def fetch_data():
     try:
         file_path = "census_2011.xlsx"
         df = pd.read_excel(file_path)
-        print("Data fetched from local file successfully.")
+        print("Data fetched from Git path successfully.")
     except Exception as e:
         print(f"An error occurred while fetching local files: {e}")
         return None
     return df
+
+
 #df = fetch_data()
 
 
 # %%
 # Rename the Column names by removing spaces and reducing the size effectively
 def rename_columns(df):
-
     #removing spaces between column names
     df.columns = df.columns.str.replace(' ', '_')
     # Rename the columns as per standard format
@@ -189,13 +192,13 @@ def rename_columns(df):
     df = df.rename(columns=column_mapping)
     return df
 
+
 #df = rename_columns(df)
 
 # %%
 # Standardizing State/UT Names
 # Function to format the state names
 def state_name_formatting(df):
-
     def capitalize_st(name):
         words = name.split()
         return ' '.join([word.capitalize() if word.lower() != 'and' else word.lower() for word in words])
@@ -213,6 +216,7 @@ def state_name_formatting(df):
     df.loc[df["District_Name"].isin(telangana_districts), "State_UT"] = "Telangana"
 
     return df
+
 
 #df = state_name_formatting(df)
 
@@ -253,19 +257,23 @@ def null_value_percent_filling(df):
         df["FemaleLiterate"] = df["FemaleLiterate"].fillna(df["Literate"] - df["MaleLiterate"])
 
         # fill Young_and_Adult Column
-        df["Young_and_Adult"] = df["Young_and_Adult"].fillna(df["Population"] - df["Middle_Aged"] - df["Senior_Citizen"] - df["Age_Not_Stated"])
+        df["Young_and_Adult"] = df["Young_and_Adult"].fillna(
+            df["Population"] - df["Middle_Aged"] - df["Senior_Citizen"] - df["Age_Not_Stated"])
 
         # fill Middle_Aged Column
-        df["Middle_Aged"] = df["Middle_Aged"].fillna(df["Population"] - df["Young_and_Adult"] - df["Senior_Citizen"] - df["Age_Not_Stated"])
+        df["Middle_Aged"] = df["Middle_Aged"].fillna(
+            df["Population"] - df["Young_and_Adult"] - df["Senior_Citizen"] - df["Age_Not_Stated"])
 
         # fill Senior_Citizen Column
-        df["Senior_Citizen"] = df["Senior_Citizen"].fillna(df["Population"] - df["Young_and_Adult"] - df["Middle_Aged"] - df["Age_Not_Stated"])
+        df["Senior_Citizen"] = df["Senior_Citizen"].fillna(
+            df["Population"] - df["Young_and_Adult"] - df["Middle_Aged"] - df["Age_Not_Stated"])
 
         # fill Age_Not_Stated Column
-        df["Age_Not_Stated"] = df["Age_Not_Stated"].fillna(df["Population"] - df["Young_and_Adult"] - df["Middle_Aged"] - df["Senior_Citizen"])
+        df["Age_Not_Stated"] = df["Age_Not_Stated"].fillna(
+            df["Population"] - df["Young_and_Adult"] - df["Middle_Aged"] - df["Senior_Citizen"])
 
         return df
-    
+
     df_updated = fill_null_values(df)
 
     null_percentage_after = null_percentage(df_updated)
@@ -274,10 +282,12 @@ def null_value_percent_filling(df):
     comparison = pd.DataFrame({
         'Before': null_percentage_before,
         'After': null_percentage_after,
-        'Difference': null_percentage_before.str.rstrip('%').astype(float) - null_percentage_after.str.rstrip('%').astype(float)
+        'Difference': null_percentage_before.str.rstrip('%').astype(float) - null_percentage_after.str.rstrip(
+            '%').astype(float)
     }).sort_values(by='Difference', ascending=False)
 
     return df_updated, comparison
+
 
 #df_updated, comparison = null_value_percent_filling(df)
 
@@ -301,8 +311,8 @@ def data_load_into_mongodb(df_updated):
             for document in documents:
                 update_dict = {}
                 for key, value in document.items():
-                        if isinstance(value, float) and math.isnan(value):
-                            update_dict[key] = 0.0
+                    if isinstance(value, float) and math.isnan(value):
+                        update_dict[key] = 0.0
 
                 # Update the document if any null values were found
                 if update_dict:
@@ -314,6 +324,7 @@ def data_load_into_mongodb(df_updated):
 
     except Exception as e:
         print(f"An error occurred while loading data to MongoDB: {e}")
+
 
 #data_load_into_mongodb(df_updated)
 
@@ -337,7 +348,7 @@ def rdbms_table_creation():
                             INCREMENT BY 1
                             NOMAXVALUE
                             NOCYCLE
-                        """,                        
+                        """,
                         """CREATE SEQUENCE hh_sequence
                             START WITH 1
                             INCREMENT BY 1
@@ -495,6 +506,7 @@ def rdbms_table_creation():
     except cx_Oracle.DatabaseError as err:
         print(f"Error connecting to MySQL: {err}")
 
+
 # Call the function to create the schema
 #rdbms_table_creation()
 
@@ -509,18 +521,17 @@ def load_data_to_oracle_db():
 
     print('Able to connect with MongoDB and Oracle DB')
 
-
     def fetch_districts_from_mongodb():
         try:
             # Fetch data from MongoDB
-            fetch_districts_data = list(mongo_collection.find({}, {'District_Code': 1, 'State_UT': 1, 'District_Name': 1,
-                                                                'Population': 1, '_id': 0}))
+            fetch_districts_data = list(
+                mongo_collection.find({}, {'District_Code': 1, 'State_UT': 1, 'District_Name': 1,
+                                           'Population': 1, '_id': 0}))
             return fetch_districts_data
 
         except Exception as e:
             print(f"An error occurred while fetching data from MongoDB: {e}")
             return None
-
 
     def insert_districts(cursor, districts):
         try:
@@ -530,17 +541,15 @@ def load_data_to_oracle_db():
                 district_name = district.get('District_Name')
                 population = district.get('Population')
 
-
                 cursor.execute("""
                     INSERT INTO DISTRICTS (DISTRICT_CODE, STATE_UT, DISTRICT_NAME, POPULATION)
                     VALUES (:1, :2, :3, :4)
                 """, (district_code, state_ut, district_name, population))
 
             print("Districts inserted successfully.")
-            
+
         except cx_Oracle.DatabaseError as err:
             print(f"Error inserting districts: {err}")
-
 
     def load_district_data():
         # Fetch districts data from MongoDB
@@ -555,15 +564,15 @@ def load_data_to_oracle_db():
         else:
             print("No data fetched from MongoDB.")
 
-
     def fetch_demographics_from_mongodb():
         try:
             # Fetch data from MongoDB
             demographics_data = list(mongo_collection.find({}, {
                 'District_Code': 1, 'State_UT': 1, 'District_Name': 1, 'Population': 1,
                 'Male': 1, 'Female': 1, 'Literate': 1, 'MaleLiterate': 1, 'FemaleLiterate': 1,
-                'SC': 1, 'MaleSC': 1, 'FemaleSC': 1, 'ST': 1, 'MaleST': 1, 'FemaleST': 1, 
-                'BelowPrimaryEdu' : 1, 'PrimaryEdu' : 1, 'MiddleEdu' : 1, 'SecondaryEdu' : 1, 'HigherEdu' : 1, 'GradEdu' : 1, 'OtherEdu' : 1, 'LitEdu' : 1, 'IllitEdu' : 1, 'TotalEdu' : 1,
+                'SC': 1, 'MaleSC': 1, 'FemaleSC': 1, 'ST': 1, 'MaleST': 1, 'FemaleST': 1,
+                'BelowPrimaryEdu': 1, 'PrimaryEdu': 1, 'MiddleEdu': 1, 'SecondaryEdu': 1, 'HigherEdu': 1, 'GradEdu': 1,
+                'OtherEdu': 1, 'LitEdu': 1, 'IllitEdu': 1, 'TotalEdu': 1,
                 'Workers': 1, 'MaleWorkers': 1, 'FemaleWorkers': 1, 'MainWorkers': 1, 'MarginalWorkers': 1,
                 'NonWorkers': 1, 'CultivatorWorkers': 1, 'AgrWorkers': 1, 'HHWorkers': 1, 'OtherWorkers': 1,
                 'Hindus': 1, 'Muslims': 1, 'Christians': 1, 'Sikhs': 1, 'Buddhists': 1, 'Jains': 1,
@@ -575,7 +584,6 @@ def load_data_to_oracle_db():
         except Exception as e:
             print(f"An error occurred while fetching data from MongoDB: {e}")
             return None
-
 
     def insert_demographics(cursor, demographics):
         try:
@@ -629,16 +637,20 @@ def load_data_to_oracle_db():
                             INSERT INTO demographics (DEMO_ID, District_Code, Male, Female, Literate, MaleLiterate, FemaleLiterate, SC, MaleSC, FemaleSC, ST, MaleST, FemaleST, BelowPrimaryEdu, PrimaryEdu, MiddleEdu, SecondaryEdu, HigherEdu, GradEdu, OtherEdu, LitEdu, IllitEdu, TotalEdu, Workers, MaleWorkers, FemaleWorkers, MainWorkers, MarginalWorkers, NonWorkers, CultivatorWorkers, AgrWorkers, HHWorkers, OtherWorkers, Hindus, Muslims, Christians, Sikhs, Buddhists, Jains, Others_Religions, RelNotStated, Young_and_Adult, Middle_Aged, Senior_Citizen, Age_Not_Stated)
                             VALUES (DEMO_SEQUENCE.NEXTVAL, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44)
                             """, (
-                district_code, male, female, literate, male_literate, female_literate, sc, male_sc, female_sc, st, male_st,
-                female_st, belowprimaryedu, primaryedu, middleedu, secondaryedu, higheredu, gradedu, otheredu, litedu, illitedu, totaledu, workers, male_workers, female_workers, main_workers, marginal_workers, non_workers,
-                cultivator_workers, agr_workers, hh_workers, other_workers, hindus, muslims, christians, sikhs, buddhists,
-                jains, others_religions, rel_not_stated, young_and_adult, middle_aged, senior_citizen, age_not_stated))
+                    district_code, male, female, literate, male_literate, female_literate, sc, male_sc, female_sc, st,
+                    male_st,
+                    female_st, belowprimaryedu, primaryedu, middleedu, secondaryedu, higheredu, gradedu, otheredu,
+                    litedu, illitedu, totaledu, workers, male_workers, female_workers, main_workers, marginal_workers,
+                    non_workers,
+                    cultivator_workers, agr_workers, hh_workers, other_workers, hindus, muslims, christians, sikhs,
+                    buddhists,
+                    jains, others_religions, rel_not_stated, young_and_adult, middle_aged, senior_citizen,
+                    age_not_stated))
 
             print("Demographics data inserted successfully.")
 
         except cx_Oracle.DatabaseError as err:
             print(f"Error inserting Demographics: {err}")
-
 
     def load_demographics_data():
         # Fetch Demographics data from MongoDB
@@ -653,17 +665,19 @@ def load_data_to_oracle_db():
         else:
             print("No data fetched from MongoDB.")
 
-
     def fetch_household_from_mongodb():
         try:
             # Fetch data from MongoDB
             household_data = list(mongo_collection.find({}, {
                 'District_Code': 1, 'LPGHH': 1, 'ElecLightHH': 1, 'InternetHH': 1, 'ComputerHH': 1, 'RuralHH': 1,
-                'UrbanHH': 1, 'TotalHH': 1, 'BicycleHH': 1, 'CarJeepVanHH': 1, 'RadioTransHH': 1, 'ScooterMotorMopedHH': 1,
+                'UrbanHH': 1, 'TotalHH': 1, 'BicycleHH': 1, 'CarJeepVanHH': 1, 'RadioTransHH': 1,
+                'ScooterMotorMopedHH': 1,
                 'PhoneLandlineHH': 1, 'MobileOnlyHH': 1, 'TVCompLaptopHH': 1, 'TVHH': 1, 'PhoneHH': 1, 'PhoneBothHH': 1,
                 'DilapHouseHH': 1, 'SepKitchenHH': 1, 'BathFacHH': 1, 'LatrineFacHH': 1, 'OwnedHH': 1, 'RentedHH': 1,
-                'BathFacEnclosureHH': 1, 'OtherFuelHH': 1, 'PitLatrineHH': 1, 'OtherLatrineHH': 1, 'NightSoilLatrineHH': 1,
-                'FlushLatrineHH': 1, 'NoBathFacHH': 1, 'NoLatrineFacHH': 1, 'UncoveredWellWaterHH': 1, 'HandpumpWaterHH': 1,
+                'BathFacEnclosureHH': 1, 'OtherFuelHH': 1, 'PitLatrineHH': 1, 'OtherLatrineHH': 1,
+                'NightSoilLatrineHH': 1,
+                'FlushLatrineHH': 1, 'NoBathFacHH': 1, 'NoLatrineFacHH': 1, 'UncoveredWellWaterHH': 1,
+                'HandpumpWaterHH': 1,
                 'SpringWaterHH': 1, 'RiverCanalWaterHH': 1,
                 'OtherWaterHH': 1, 'OtherWaterHH_River': 1, 'NearPremisesWaterHH': 1, 'WithinPremisesWaterHH': 1,
                 'PondLakeWaterHH': 1,
@@ -685,7 +699,6 @@ def load_data_to_oracle_db():
         except Exception as e:
             print(f"An error occurred while fetching data from MongoDB: {e}")
             return None
-
 
     def insert_household(cursor, households):
         try:
@@ -770,24 +783,30 @@ def load_data_to_oracle_db():
                             VALUES (HH_SEQUENCE.NEXTVAL, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20, :21, :22, :23, :24, :25, :26, :27, :28, :29, :30, :31, :32, :33, :34, :35, :36, :37, :38, :39, :40, :41, :42, :43, :44, :45, :46, :47, :48, :49, :50, :51, :52, :53, :54, :55, :56, :57, :58, :59, :60, :61, :62, :63, :64, :65, :66, :67, :68, :69, :70, :71, :72)
                             """, (
                     district_code, lpghh, eleclighthh, internethh, computerhh, ruralhh, urbanhh, totalhh, bicyclehh,
-                    carjeepvanhh, radiotranshh, scootermotormopedhh, phonelandlinehh, mobileonlyhh, tvcomplaptophh, tvhh,
+                    carjeepvanhh, radiotranshh, scootermotormopedhh, phonelandlinehh, mobileonlyhh, tvcomplaptophh,
+                    tvhh,
                     phonehh, phonebothhh, dilaphousehh, sepkitchenhh, bathfachh, latrinefachh, ownedhh, rentedhh,
                     bathfacenclosurehh, otherfuelhh, pitlatrinehh, otherlatrinehh, nightsoillatrinehh, flushlatrinehh,
-                    nobathfachh, nolatrinefachh, uncoveredwellwaterhh, handpumpwaterhh, springwaterhh, rivercanalwaterhh,
-                    otherwaterhh, otherwaterhh_river, nearpremiseswaterhh, withinpremiseswaterhh, pondlakewaterhh, tapwaterhh,
-                    boreholewaterhh, hhsize1person, hhsize2persons, hhsize1to2persons, hhsize3persons, hhsize3to5persons,
-                    hhsize4persons, hhsize5persons, hhsize6_8persons, hhsize9abovepersons, awaywatersourcehh, marriedcouple1hh,
+                    nobathfachh, nolatrinefachh, uncoveredwellwaterhh, handpumpwaterhh, springwaterhh,
+                    rivercanalwaterhh,
+                    otherwaterhh, otherwaterhh_river, nearpremiseswaterhh, withinpremiseswaterhh, pondlakewaterhh,
+                    tapwaterhh,
+                    boreholewaterhh, hhsize1person, hhsize2persons, hhsize1to2persons, hhsize3persons,
+                    hhsize3to5persons,
+                    hhsize4persons, hhsize5persons, hhsize6_8persons, hhsize9abovepersons, awaywatersourcehh,
+                    marriedcouple1hh,
                     marriedcouple2hh, marriedcouple3hh, marriedcouple3ormorehh, marriedcouple4hh, marriedcouple5hh,
                     marriedcouplenonehh, powerparityless45000, powerparity45000_90000, powerparity90000_150000,
-                    powerparity45000_150000, powerparity150000_240000, powerparity240000_330000, powerparity150000_330000,
-                    powerparity330000_425000, powerparity425000_545000, powerparity330000_545000, powerparityabove545000,
+                    powerparity45000_150000, powerparity150000_240000, powerparity240000_330000,
+                    powerparity150000_330000,
+                    powerparity330000_425000, powerparity425000_545000, powerparity330000_545000,
+                    powerparityabove545000,
                     totalpowerparity))
 
             print("Household data inserted successfully.")
 
         except cx_Oracle.DatabaseError as err:
             print(f"Error inserting Demographics: {err}")
-
 
     def load_household_data():
         # Fetch household data from MongoDB
@@ -802,23 +821,22 @@ def load_data_to_oracle_db():
         else:
             print("No data fetched from MongoDB.")
 
-
     load_district_data()
     load_demographics_data()
     load_household_data()
-    
+
+
 #load_data_to_oracle_db()
 
-def oracle_tables_to_df(): 
-    
+def oracle_tables_to_df():
     oracle_connection = connect_oracledb()
     oracle_cursor = oracle_connection.cursor()
-       
+
     def fetch_data_to_dataframe(query, connection):
         try:
             # Execute the query
             oracle_cursor.execute(query)
-            
+
             # Fetch all rows from the executed query
             rows = oracle_cursor.fetchall()
 
@@ -842,11 +860,12 @@ def oracle_tables_to_df():
     demographics_df = fetch_data_to_dataframe(demographics_query, oracle_connection)
     household_df = fetch_data_to_dataframe(household_query, oracle_connection)
 
-     # Close the cursor and connection
+    # Close the cursor and connection
     oracle_cursor.close()
     oracle_connection.close()
 
     return districts_df, demographics_df, household_df
+
 
 #oracle_tables_to_df()
 
@@ -858,6 +877,7 @@ def drop_mongodb_collection():
         print(f"Collection dropped successfully.")
     except Exception as e:
         print(f"An error occurred while dropping the MongoDB collection: {e}")
+
 
 #drop_mongodb_collection()
 
@@ -878,6 +898,8 @@ if 'demographics_df' not in st.session_state:
     st.session_state.demographics_df = pd.DataFrame()
 if 'household_df' not in st.session_state:
     st.session_state.household_df = pd.DataFrame()
+if 'result_df' not in st.session_state:
+    st.session_state.result_df = pd.DataFrame()
 
 # Sidebar background color change
 sidebar_style = """
@@ -937,15 +959,18 @@ if st.sidebar.button("Load Data to Oracle DB"):
         drop_mongodb_collection()
     st.success("Data loaded successfully into Oracle DB!")
 
+
 # Function to execute a query and return the result as a DataFrame
 def run_query(query):
     connection = connect_oracledb()
     cursor = connection.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
+    columns = [col[0] for col in cursor.description]
     cursor.close()
     connection.close()
-    return pd.DataFrame(result)
+    return pd.DataFrame(result, columns=columns)
+
 
 # Function to perform analysis based on selected question
 def analysis(question):
@@ -1196,12 +1221,13 @@ def analysis(question):
     query = queries.get(question, "")
     if query:
         try:
-            df = run_query(query)
-            st.write(df)
+            st.session_state.result_df = run_query(query)
+            st.write(st.session_state.result_df)
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
         st.error('Invalid question selected.')
+
 
 # SQL Analysis questions
 questions = [
@@ -1230,9 +1256,8 @@ questions = [
 question = st.sidebar.selectbox("Select Question", questions)
 # Analyze Button
 if st.sidebar.button("Analyze"):
-    st.header("Analysis Result")
-    analysis(question)
-
+    analysis_result = analysis(question)
+    st.write(analysis_result)
 
 # Display Data
 st.header("Census Data")
@@ -1253,8 +1278,6 @@ st.markdown(
         background-color: #e0e0eb; 
     }
     </style>
-    """, 
+    """,
     unsafe_allow_html=True
 )
-
-
