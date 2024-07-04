@@ -336,7 +336,7 @@ def rdbms_table_creation():
                 # Create a cursor object using context manager
                 with connection.cursor() as cursor:
                     # Defining table drop and creation queries
-                    schema_queries = [
+                    table_queries = [
                         """ALTER TABLE Demographics DROP CONSTRAINT fk_district_code_Geo""",
                         """ALTER TABLE Demographics DROP CONSTRAINT fk_district_code_hh""",
                         """DROP TABLE Districts""",
@@ -492,7 +492,7 @@ def rdbms_table_creation():
                     ]
 
                     # Execute schema queries
-                    for query in schema_queries:
+                    for query in table_queries:
                         try:
                             cursor.execute(query)
                             print("Table created successfully.")
