@@ -214,7 +214,6 @@ def state_name_formatting(df):
         telangana_districts = file.read().splitlines()
 
     df.loc[df["District_Name"].isin(telangana_districts), "State_UT"] = "Telangana"
-
     return df
 
 
